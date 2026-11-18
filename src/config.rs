@@ -91,6 +91,10 @@ pub fn home_dir() -> Result<PathBuf> {
 /// Path of an existing project file, trying `.yml` then `.yaml`.
 pub fn find_project(name: &str) -> Result<PathBuf> {
     let dir = config_dir()?;
+    let name = name
+        .strip_suffix(".yml")
+        .or_else(|| name.strip_suffix(".yaml"))
+        .unwrap_or(name);
     for ext in ["yml", "yaml"] {
         let path = dir.join(format!("{name}.{ext}"));
         if path.is_file() {

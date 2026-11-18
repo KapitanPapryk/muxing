@@ -55,6 +55,18 @@ install -m 755 "$tmp/muxing-$arch-unknown-linux-musl/muxing" "$INSTALL_DIR/muxin
 
 say "installed $("$INSTALL_DIR/muxing" --version) to $INSTALL_DIR/muxing"
 
+# Shell completions (project names without .yml) for the shells that are installed.
+if command -v fish >/dev/null 2>&1; then
+  dir="${XDG_CONFIG_HOME:-$HOME/.config}/fish/completions"
+  mkdir -p "$dir" && "$INSTALL_DIR/muxing" completions fish > "$dir/muxing.fish" \
+    && say "installed fish completions to $dir/muxing.fish"
+fi
+if command -v bash >/dev/null 2>&1; then
+  dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
+  mkdir -p "$dir" && "$INSTALL_DIR/muxing" completions bash > "$dir/muxing" \
+    && say "installed bash completions to $dir/muxing (needs the bash-completion package)"
+fi
+
 case ":$PATH:" in
   *":$INSTALL_DIR:"*) ;;
   *) say ""

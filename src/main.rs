@@ -9,13 +9,23 @@ use std::{
 };
 
 use anyhow::{Context, Result, bail};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(version, about = "Manage tmux sessions from YAML project files")]
+#[command(
+    version,
+    about = "Manage tmux sessions from YAML project files",
+    override_usage = "muxing <PROJECT> [-d]\n       muxing <COMMAND>",
+    args_conflicts_with_subcommands = true
+)]
 struct Cli {
     #[command(subcommand)]
-    command: Cmd,
+    command: Option<Cmd>,
+    /// Project to start and attach to (same as `muxing start <PROJECT>`)
+    project: Option<String>,
+    /// Don't attach after starting
+    #[arg(short, long, requires = "project")]
+    detached: bool,
 }
 
 #[derive(Subcommand)]
@@ -32,7 +42,11 @@ enum Cmd {
     Stop { name: String },
     /// List projects
     #[command(alias = "ls")]
-    List,
+    List {
+        /// Print only project names, one per line (used by shell completions)
+        #[arg(long)]
+        names: bool,
+    },
     /// Create a new project file and open it in $EDITOR
     New { name: String },
     /// Open a project file in $EDITOR
@@ -57,8 +71,16 @@ enum Cmd {
         #[command(subcommand)]
         action: ServiceCmd,
     },
+    /// Print a shell completion script (bash or fish)
+    Completions { shell: Shell },
     /// Print the config directory
     Dir,
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum Shell {
+    Bash,
+    Fish,
 }
 
 #[derive(Subcommand)]
@@ -86,7 +108,18 @@ fn main() -> ExitCode {
 }
 
 fn run(cli: Cli) -> Result<ExitCode> {
-    match cli.command {
+    let command = match (cli.command, cli.project) {
+        (Some(command), _) => command,
+        (None, Some(name)) => Cmd::Start {
+            name,
+            detached: cli.detached,
+        },
+        (None, None) => {
+            Cli::command().print_help()?;
+            return Ok(ExitCode::FAILURE);
+        }
+    };
+    match command {
         Cmd::Start { name, detached } => {
             let session = config::load(&config::find_project(&name)?)?;
             if tmux::ensure_session(&session)? && detached {
@@ -103,7 +136,12 @@ fn run(cli: Cli) -> Result<ExitCode> {
             }
             tmux::kill_session(&session.name)?;
         }
-        Cmd::List => list()?,
+        Cmd::List { names: true } => {
+            for (name, _) in config::list_projects()? {
+                println!("{name}");
+            }
+        }
+        Cmd::List { names: false } => list()?,
         Cmd::New { name } => {
             let dir = config::config_dir()?;
             fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
@@ -133,6 +171,13 @@ fn run(cli: Cli) -> Result<ExitCode> {
             ServiceCmd::Uninstall => service::uninstall()?,
             ServiceCmd::Status => service::status()?,
         },
+        Cmd::Completions { shell } => print!(
+            "{}",
+            match shell {
+                Shell::Bash => include_str!("../completions/muxing.bash"),
+                Shell::Fish => include_str!("../completions/muxing.fish"),
+            }
+        ),
         Cmd::Dir => println!("{}", config::config_dir()?.display()),
     }
     Ok(ExitCode::SUCCESS)

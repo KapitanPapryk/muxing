@@ -23,6 +23,9 @@ curl -fsSL https://raw.githubusercontent.com/KapitanPapryk/muxing/main/install.s
   | MUXING_VERSION=v0.1.0 MUXING_INSTALL_DIR=/usr/local/bin sh
 ```
 
+The installer also sets up tab completion for fish and bash (bash needs the `bash-completion`
+package). It completes subcommands and project names, without the `.yml`.
+
 **Upgrade:** run the same one-liner again. The systemd service keeps working because it
 points at the same path.
 
@@ -73,6 +76,7 @@ See [`examples/example.yml`](examples/example.yml).
 
 | command | |
 |---|---|
+| `muxing <name> [-d]` | shortcut for `muxing start <name>` (use `start` if a project is named like a command) |
 | `muxing start <name> [-d]` | create the session if needed and attach (`-d`: don't attach). Inside tmux it switches client. |
 | `muxing stop <name>` | kill the session |
 | `muxing list` | projects, autostart flag, running status |
@@ -85,6 +89,7 @@ See [`examples/example.yml`](examples/example.yml).
 | `muxing service install [--now]` | write and enable the systemd user service |
 | `muxing service uninstall` | stop, disable and remove it |
 | `muxing service status` | service status and linger state |
+| `muxing completions <bash\|fish>` | print a completion script (the installer sets these up) |
 
 Set `MUXING_TMUX` to use a different tmux binary or wrapper.
 
