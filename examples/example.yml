@@ -1,0 +1,26 @@
+# Copy to ~/.config/muxing/example.yml and run: muxing start example
+#
+# name: tmux session name (defaults to the file name; '.' and ':' become '_')
+name: example
+# root: working directory for all windows/panes (~ and $VARS are expanded)
+root: ~/
+# autostart: start this session from the systemd user service
+autostart: false
+
+windows:
+  # A window with several panes. `layout` is any tmux layout name
+  # (even-horizontal, even-vertical, main-horizontal, main-vertical, tiled)
+  # or a custom layout string. Defaults to `tiled` when there are >1 panes.
+  - name: work
+    root: /tmp            # relative paths are resolved against the project root
+    layout: main-vertical
+    panes:
+      - echo "pane 1 - a single command"
+      - [echo "pane 2 -", echo "a list of commands run in order"]
+      - root: ~/          # pane-specific working directory
+        commands:
+          - echo "pane 3 - detailed form"
+      -                   # an empty pane
+
+  # A window without panes gets one empty shell.
+  - name: shell

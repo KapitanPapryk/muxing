@@ -1,0 +1,19 @@
+# Reference unit. `muxing service install` generates this automatically with the
+# absolute path of the binary. Manual install:
+#   cp systemd/muxing.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now muxing
+#   loginctl enable-linger $USER   # start at boot, not only at login
+[Unit]
+Description=muxing: start tmux sessions marked autostart
+After=default.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=%h/.cargo/bin/muxing autostart
+ExecStop=%h/.cargo/bin/muxing autostop
+# Don't let systemd kill the tmux server; ExecStop removes our sessions.
+KillMode=process
+
+[Install]
+WantedBy=default.target
