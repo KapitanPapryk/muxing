@@ -2,6 +2,9 @@
 name = "muxing"
 version = "0.1.0"
 edition = "2024"
+description = "tmuxinator-like tmux session manager with YAML configs and a systemd autostart service"
+license = "LGPL-3.0-or-later"
+repository = "https://github.com/KapitanPapryk/muxing"
 
 [dependencies]
 anyhow = "1.0.104"
@@ -9,3 +12,8 @@ clap = { version = "4.6.8", features = ["derive"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_yaml = "0.9.34"
 shellexpand = "3.1.2"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1

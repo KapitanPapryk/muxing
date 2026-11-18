@@ -113,10 +113,12 @@ pub fn list_projects() -> Result<Vec<(String, PathBuf)>> {
             path.extension().and_then(|e| e.to_str()),
             Some("yml" | "yaml")
         );
-        if is_yaml && path.is_file()
-            && let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                out.push((stem.to_string(), path.clone()));
-            }
+        if is_yaml
+            && path.is_file()
+            && let Some(stem) = path.file_stem().and_then(|s| s.to_str())
+        {
+            out.push((stem.to_string(), path.clone()));
+        }
     }
     out.sort();
     Ok(out)
@@ -157,7 +159,10 @@ impl Project {
             let mut panes = Vec::new();
             for pane in window.panes {
                 panes.push(match pane {
-                    None => ResolvedPane { root: window_root.clone(), commands: vec![] },
+                    None => ResolvedPane {
+                        root: window_root.clone(),
+                        commands: vec![],
+                    },
                     Some(Pane::Command(cmd)) => ResolvedPane {
                         root: window_root.clone(),
                         commands: vec![cmd],
@@ -176,19 +181,33 @@ impl Project {
                 });
             }
             if panes.is_empty() {
-                panes.push(ResolvedPane { root: window_root, commands: vec![] });
+                panes.push(ResolvedPane {
+                    root: window_root,
+                    commands: vec![],
+                });
             }
-            windows.push(ResolvedWindow { name: window.name, layout: window.layout, panes });
+            windows.push(ResolvedWindow {
+                name: window.name,
+                layout: window.layout,
+                panes,
+            });
         }
         if windows.is_empty() {
             windows.push(ResolvedWindow {
                 name: None,
                 layout: None,
-                panes: vec![ResolvedPane { root: project_root, commands: vec![] }],
+                panes: vec![ResolvedPane {
+                    root: project_root,
+                    commands: vec![],
+                }],
             });
         }
 
-        Ok(Session { name, autostart: self.autostart, windows })
+        Ok(Session {
+            name,
+            autostart: self.autostart,
+            windows,
+        })
     }
 }
 
@@ -204,7 +223,11 @@ pub fn sanitize_name(name: &str) -> String {
 fn resolve_path(raw: &str, base: &Path) -> Result<PathBuf> {
     let expanded = shellexpand::full(raw).with_context(|| format!("expanding path '{raw}'"))?;
     let path = PathBuf::from(expanded.as_ref());
-    Ok(if path.is_absolute() { path } else { base.join(path) })
+    Ok(if path.is_absolute() {
+        path
+    } else {
+        base.join(path)
+    })
 }
 
 pub const TEMPLATE: &str = r#"# muxing project
@@ -265,19 +288,34 @@ windows:
         assert_eq!(
             w.panes,
             vec![
-                ResolvedPane { root: src.clone(), commands: vec!["nvim".into()] },
+                ResolvedPane {
+                    root: src.clone(),
+                    commands: vec!["nvim".into()]
+                },
                 ResolvedPane {
                     root: src.clone(),
                     commands: vec!["cd api".into(), "cargo run".into()]
                 },
-                ResolvedPane { root: "/tmp".into(), commands: vec!["ls".into()] },
-                ResolvedPane { root: src.join("web"), commands: vec![] },
-                ResolvedPane { root: src.clone(), commands: vec![] },
+                ResolvedPane {
+                    root: "/tmp".into(),
+                    commands: vec!["ls".into()]
+                },
+                ResolvedPane {
+                    root: src.join("web"),
+                    commands: vec![]
+                },
+                ResolvedPane {
+                    root: src.clone(),
+                    commands: vec![]
+                },
             ]
         );
         assert_eq!(
             s.windows[1].panes,
-            vec![ResolvedPane { root: "/srv/app".into(), commands: vec![] }]
+            vec![ResolvedPane {
+                root: "/srv/app".into(),
+                commands: vec![]
+            }]
         );
     }
 

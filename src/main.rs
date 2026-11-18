@@ -144,16 +144,28 @@ fn list() -> Result<()> {
         println!("no projects in {}", config::config_dir()?.display());
         return Ok(());
     }
-    let width = projects.iter().map(|(n, _)| n.len()).max().unwrap_or(0).max(7);
+    let width = projects
+        .iter()
+        .map(|(n, _)| n.len())
+        .max()
+        .unwrap_or(0)
+        .max(7);
     println!("{:width$}  {:9}  STATUS", "PROJECT", "AUTOSTART");
     for (name, path) in projects {
         match config::load(&path) {
             Ok(s) => {
-                let running = if tmux::has_session(&s.name) { "running" } else { "-" };
+                let running = if tmux::has_session(&s.name) {
+                    "running"
+                } else {
+                    "-"
+                };
                 let auto = if s.autostart { "yes" } else { "no" };
                 println!("{name:width$}  {auto:9}  {running}");
             }
-            Err(_) => println!("{name:width$}  {:9}  invalid (see `muxing check {name}`)", "?"),
+            Err(_) => println!(
+                "{name:width$}  {:9}  invalid (see `muxing check {name}`)",
+                "?"
+            ),
         }
     }
     Ok(())
@@ -162,7 +174,10 @@ fn list() -> Result<()> {
 fn check(name: Option<String>) -> Result<ExitCode> {
     let paths = match name {
         Some(name) => vec![config::find_project(&name)?],
-        None => config::list_projects()?.into_iter().map(|(_, p)| p).collect(),
+        None => config::list_projects()?
+            .into_iter()
+            .map(|(_, p)| p)
+            .collect(),
     };
     let mut ok = true;
     for path in paths {
@@ -184,7 +199,11 @@ fn check(name: Option<String>) -> Result<ExitCode> {
             }
         }
     }
-    Ok(if ok { ExitCode::SUCCESS } else { ExitCode::FAILURE })
+    Ok(if ok {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    })
 }
 
 fn autostart() -> Result<ExitCode> {
@@ -210,13 +229,19 @@ fn autostart() -> Result<ExitCode> {
             }
         }
     }
-    Ok(if ok { ExitCode::SUCCESS } else { ExitCode::FAILURE })
+    Ok(if ok {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    })
 }
 
 fn autostop() -> Result<ExitCode> {
     let mut ok = true;
     for (name, path) in config::list_projects()? {
-        let Ok(session) = config::load(&path) else { continue };
+        let Ok(session) = config::load(&path) else {
+            continue;
+        };
         if !session.autostart || !tmux::has_session(&session.name) {
             continue;
         }
@@ -228,7 +253,11 @@ fn autostop() -> Result<ExitCode> {
             }
         }
     }
-    Ok(if ok { ExitCode::SUCCESS } else { ExitCode::FAILURE })
+    Ok(if ok {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    })
 }
 
 fn open_editor(path: &std::path::Path) -> Result<()> {

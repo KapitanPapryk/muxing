@@ -100,7 +100,11 @@ pub fn status() -> Result<()> {
         .context("failed to run systemctl")?;
     println!(
         "\nlinger: {}",
-        if linger_enabled() { "enabled (starts at boot)" } else { "disabled (starts at login)" }
+        if linger_enabled() {
+            "enabled (starts at boot)"
+        } else {
+            "disabled (starts at login)"
+        }
     );
     Ok(())
 }

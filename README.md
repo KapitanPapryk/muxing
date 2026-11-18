@@ -1,5 +1,7 @@
 # muxing
 
+[![CI](https://github.com/KapitanPapryk/muxing/actions/workflows/ci.yml/badge.svg)](https://github.com/KapitanPapryk/muxing/actions/workflows/ci.yml)
+
 A small [tmuxinator](https://github.com/tmuxinator/tmuxinator)-like tmux session manager written in Rust.
 Projects are YAML files that describe windows, panes and startup commands. Projects marked
 `autostart: true` are started by a systemd user service at boot or login.
@@ -7,7 +9,29 @@ Projects are YAML files that describe windows, panes and startup commands. Proje
 ## Install
 
 ```sh
-cargo install --path .
+curl -fsSL https://raw.githubusercontent.com/KapitanPapryk/muxing/main/install.sh | sh
+```
+
+This downloads the latest release for your CPU (x86_64 or aarch64, static binary that works on
+any Linux distro), checks its sha256 and installs it to `~/.local/bin/muxing`. You need `tmux`
+installed to use muxing.
+
+Optional settings, passed to `sh`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/KapitanPapryk/muxing/main/install.sh \
+  | MUXING_VERSION=v0.1.0 MUXING_INSTALL_DIR=/usr/local/bin sh
+```
+
+**Upgrade:** run the same one-liner again. The systemd service keeps working because it
+points at the same path.
+
+**Uninstall:**
+
+```sh
+muxing service uninstall
+rm ~/.local/bin/muxing
+# your projects stay in ~/.config/muxing
 ```
 
 ## Config directory

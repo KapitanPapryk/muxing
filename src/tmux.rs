@@ -33,7 +33,10 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
 {
-    let args: Vec<_> = args.into_iter().map(|a| a.as_ref().to_os_string()).collect();
+    let args: Vec<_> = args
+        .into_iter()
+        .map(|a| a.as_ref().to_os_string())
+        .collect();
     let out = command(&args)
         .stdin(Stdio::null())
         .output()
@@ -94,7 +97,12 @@ fn build(session: &Session) -> Result<()> {
                 lines.to_string(),
             ]
         } else {
-            vec!["new-window".into(), "-d".into(), "-t".into(), format!("={}:", session.name)]
+            vec![
+                "new-window".into(),
+                "-d".into(),
+                "-t".into(),
+                format!("={}:", session.name),
+            ]
         };
         if let Some(name) = &window.name {
             args.extend(["-n".into(), name.clone()]);
@@ -145,7 +153,9 @@ fn build_panes(window: &ResolvedWindow, window_id: &str, first_pane_id: &str) ->
 
     match &window.layout {
         Some(layout) => run(["select-layout", "-t", window_id, layout]).map(|_| ())?,
-        None if pane_ids.len() > 1 => run(["select-layout", "-t", window_id, "tiled"]).map(|_| ())?,
+        None if pane_ids.len() > 1 => {
+            run(["select-layout", "-t", window_id, "tiled"]).map(|_| ())?
+        }
         None => {}
     }
 
